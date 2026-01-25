@@ -122,28 +122,6 @@ export default function App() {
     setIsAudioLoading(false);
   };
 
-  const renderScene = BottomNavigation.SceneMap({
-    search: () => (
-      <RadioBrowserScreen
-        playStation={playStation}
-        currentStation={currentStation}
-        isPlaying={isPlaying}
-        isAudioLoading={isAudioLoading}
-        favorites={favorites}
-        toggleFavorite={toggleFavorite}
-      />
-    ),
-    favorites: () => (
-      <FavoritesScreen
-        playStation={playStation}
-        currentStation={currentStation}
-        isPlaying={isPlaying}
-        isAudioLoading={isAudioLoading}
-        toggleFavorite={toggleFavorite}
-      />
-    ),
-  });
-
   const isCurrentStationFav = currentStation && favorites.has(currentStation.stationuuid);
 
   return (
@@ -158,7 +136,34 @@ export default function App() {
           <BottomNavigation
             navigationState={{ index, routes }}
             onIndexChange={setIndex}
-            renderScene={renderScene}
+            renderScene={({ route }) => {
+              switch (route.key) {
+                case 'search':
+                  return (
+                    <RadioBrowserScreen
+                      playStation={playStation}
+                      currentStation={currentStation}
+                      isPlaying={isPlaying}
+                      isAudioLoading={isAudioLoading}
+                      favorites={favorites}
+                      toggleFavorite={toggleFavorite}
+                    />
+                  );
+                case 'favorites':
+                  return (
+                    <FavoritesScreen
+                      playStation={playStation}
+                      currentStation={currentStation}
+                      isPlaying={isPlaying}
+                      isAudioLoading={isAudioLoading}
+                      toggleFavorite={toggleFavorite}
+                      favorites={favorites}
+                    />
+                  );
+                default:
+                  return null;
+              }
+            }}
             barStyle={{ backgroundColor: theme.colors.elevation.level2 }}
           />
         </View>
@@ -182,7 +187,7 @@ export default function App() {
                   <ActivityIndicator style={styles.panelLoader} />
                 ) : (
                   <IconButton
-                    icon={isPlaying ? "pause" : "play"}
+                    icon={isPlaying ? "stop" : "play"}
                     size={28}
                     onPress={togglePlayback}
                   />
