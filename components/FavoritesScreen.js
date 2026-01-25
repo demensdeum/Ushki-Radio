@@ -45,7 +45,7 @@ const FavoritesScreen = ({ playStation, currentStation, isPlaying, isAudioLoadin
                 )}
                 right={(props) => (
                     <View style={styles.rightContainer}>
-                        {item.tags && item.tags.trim().length > 0 && (
+                        {item.tags && item.tags.trim().length > 0 ? (
                             <View style={styles.tagContainer}>
                                 {item.tags.split(',').slice(0, 1).map((tag, index) => {
                                     const trimmedTag = tag.trim();
@@ -56,7 +56,7 @@ const FavoritesScreen = ({ playStation, currentStation, isPlaying, isAudioLoadin
                                     ) : null;
                                 })}
                             </View>
-                        )}
+                        ) : null}
                         <IconButton
                             icon="heart"
                             iconColor={theme.colors.primary}

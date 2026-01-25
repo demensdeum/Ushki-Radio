@@ -116,7 +116,7 @@ const RadioBrowserScreen = ({ playStation, currentStation, isPlaying, isAudioLoa
                 )}
                 right={(props) => (
                     <View style={styles.rightContainer}>
-                        {item.tags && item.tags.trim().length > 0 && (
+                        {item.tags && item.tags.trim().length > 0 ? (
                             <View style={styles.tagContainer}>
                                 {item.tags.split(',').slice(0, 1).map((tag, index) => {
                                     const trimmedTag = tag.trim();
@@ -127,7 +127,7 @@ const RadioBrowserScreen = ({ playStation, currentStation, isPlaying, isAudioLoa
                                     ) : null;
                                 })}
                             </View>
-                        )}
+                        ) : null}
                         <IconButton
                             icon={isFav ? "heart" : "heart-outline"}
                             iconColor={isFav ? theme.colors.primary : theme.colors.outline}

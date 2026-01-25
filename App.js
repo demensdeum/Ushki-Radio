@@ -16,6 +16,7 @@ const theme = {
 };
 
 const LAST_STATION_KEY = '@ushki_last_station';
+const VOLUME_KEY = '@ushki_volume';
 
 export default function App() {
   const [index, setIndex] = useState(0);
@@ -39,21 +40,25 @@ export default function App() {
     setFavorites(new Set(favs.map(f => f.stationuuid)));
   }, []);
 
-  const loadLastStation = useCallback(async () => {
+  const loadSettingsSource = useCallback(async () => {
     try {
-      const saved = await AsyncStorage.getItem(LAST_STATION_KEY);
-      if (saved) {
-        setCurrentStation(JSON.parse(saved));
+      const savedStation = await AsyncStorage.getItem(LAST_STATION_KEY);
+      if (savedStation) {
+        setCurrentStation(JSON.parse(savedStation));
+      }
+      const savedVolume = await AsyncStorage.getItem(VOLUME_KEY);
+      if (savedVolume !== null) {
+        setVolume(parseFloat(savedVolume));
       }
     } catch (e) {
-      console.error('Error loading last station:', e);
+      console.error('Error loading settings:', e);
     }
   }, []);
 
   useEffect(() => {
     loadFavorites();
-    loadLastStation();
-  }, [loadFavorites, loadLastStation]);
+    loadSettingsSource();
+  }, [loadFavorites, loadSettingsSource]);
 
   const toggleFavorite = async (station) => {
     const isFav = favorites.has(station.stationuuid);
@@ -157,6 +162,11 @@ export default function App() {
     if (sound) {
       await sound.setVolumeAsync(value);
     }
+    try {
+      await AsyncStorage.setItem(VOLUME_KEY, value.toString());
+    } catch (e) {
+      console.error('Error saving volume:', e);
+    }
   };
 
 
@@ -240,11 +250,6 @@ export default function App() {
                     onPress={togglePlayback}
                   />
                 )}
-                <IconButton
-                  icon="close"
-                  size={20}
-                  onPress={stopPlayback}
-                />
               </View>
             </View>
           </Surface>
