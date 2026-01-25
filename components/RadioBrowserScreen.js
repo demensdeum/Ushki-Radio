@@ -100,15 +100,20 @@ const RadioBrowserScreen = () => {
             title={item.name}
             description={item.country || 'Unknown Country'}
             left={(props) => <List.Icon {...props} icon="radio" />}
-            right={(props) => (
-                <View style={styles.tagContainer}>
-                    {item.tags && item.tags.split(',').slice(0, 2).map((tag, index) => (
-                        <Surface key={index} style={styles.tag}>
-                            <Text style={styles.tagText}>{tag.trim()}</Text>
-                        </Surface>
-                    ))}
-                </View>
-            )}
+            right={(props) =>
+                item.tags && item.tags.trim().length > 0 ? (
+                    <View style={styles.tagContainer}>
+                        {item.tags.split(',').slice(0, 2).map((tag, index) => {
+                            const trimmedTag = tag.trim();
+                            return trimmedTag.length > 0 ? (
+                                <Surface key={index} style={styles.tag}>
+                                    <Text style={styles.tagText}>{trimmedTag}</Text>
+                                </Surface>
+                            ) : null;
+                        })}
+                    </View>
+                ) : null
+            }
         />
     );
 
