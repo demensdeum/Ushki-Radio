@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, StatusBar } from 'react-native';
 import { Provider as PaperProvider, Appbar, MD3DarkTheme, BottomNavigation, Text, Surface, IconButton, ActivityIndicator, Divider } from 'react-native-paper';
 import { Audio } from 'expo-av';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import RadioBrowserScreen from './components/RadioBrowserScreen';
 import FavoritesScreen from './components/FavoritesScreen';
 import FavoritesService from './components/FavoritesService';
@@ -12,6 +13,8 @@ const theme = {
     ...MD3DarkTheme.colors,
   },
 };
+
+const LAST_STATION_KEY = '@ushki_last_station';
 
 export default function App() {
   const [index, setIndex] = useState(0);
@@ -34,9 +37,21 @@ export default function App() {
     setFavorites(new Set(favs.map(f => f.stationuuid)));
   }, []);
 
+  const loadLastStation = useCallback(async () => {
+    try {
+      const saved = await AsyncStorage.getItem(LAST_STATION_KEY);
+      if (saved) {
+        setCurrentStation(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error('Error loading last station:', e);
+    }
+  }, []);
+
   useEffect(() => {
     loadFavorites();
-  }, [loadFavorites]);
+    loadLastStation();
+  }, [loadFavorites, loadLastStation]);
 
   const toggleFavorite = async (station) => {
     const isFav = favorites.has(station.stationuuid);
@@ -61,7 +76,7 @@ export default function App() {
   const playStation = async (station) => {
     try {
       setIsAudioLoading(true);
-      if (currentStation?.stationuuid === station.stationuuid) {
+      if (currentStation?.stationuuid === station.stationuuid && sound) {
         await togglePlayback();
         return;
       }
@@ -70,6 +85,10 @@ export default function App() {
       }
       setCurrentStation(station);
       setIsPlaying(true);
+
+      // Save last played station
+      await AsyncStorage.setItem(LAST_STATION_KEY, JSON.stringify(station));
+
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: station.url_resolved },
         { shouldPlay: true }
@@ -97,6 +116,12 @@ export default function App() {
   };
 
   const togglePlayback = async () => {
+    // If we have a current station but no sound (e.g. from app restart), load it first
+    if (!sound && currentStation) {
+      await playStation(currentStation);
+      return;
+    }
+
     if (!sound) return;
     try {
       if (isPlaying) {
@@ -120,7 +145,11 @@ export default function App() {
     setCurrentStation(null);
     setIsPlaying(false);
     setIsAudioLoading(false);
+
+    // Clear last played station
+    await AsyncStorage.removeItem(LAST_STATION_KEY);
   };
+
 
   const isCurrentStationFav = currentStation && favorites.has(currentStation.stationuuid);
 
