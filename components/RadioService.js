@@ -28,12 +28,13 @@ const RadioService = {
             const params = new URLSearchParams({
                 limit: limit.toString(),
                 offset: offset.toString(),
-                by: 'name',
-                searchterm: name,
+                name: name,
+                order: 'clickcount',
+                reverse: 'true',
                 hidebroken: 'true'
             });
 
-            const response = await fetch(`${BASE_URL}/stations?${params.toString()}`);
+            const response = await fetch(`${BASE_URL}/stations/search?${params.toString()}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

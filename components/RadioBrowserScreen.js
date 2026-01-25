@@ -31,7 +31,7 @@ const RadioBrowserScreen = () => {
             } else {
                 fetchStations(true);
             }
-        }, isFirstRun.current ? 0 : 500);
+        }, isFirstRun.current ? 0 : 2000);
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchQuery]);
