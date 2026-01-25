@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, StatusBar } from 'react-native';
 import { Provider as PaperProvider, Appbar, MD3DarkTheme, BottomNavigation, Text, Surface, IconButton, ActivityIndicator, Divider } from 'react-native-paper';
 import { Audio } from 'expo-av';
+import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RadioBrowserScreen from './components/RadioBrowserScreen';
 import FavoritesScreen from './components/FavoritesScreen';
@@ -28,6 +29,7 @@ export default function App() {
   const [currentStation, setCurrentStation] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [volume, setVolume] = useState(1.0);
 
   // Global Favorites State
   const [favorites, setFavorites] = useState(new Set());
@@ -91,7 +93,7 @@ export default function App() {
 
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: station.url_resolved },
-        { shouldPlay: true }
+        { shouldPlay: true, volume: volume }
       );
       setSound(newSound);
       newSound.setOnPlaybackStatusUpdate((status) => {
@@ -148,6 +150,13 @@ export default function App() {
 
     // Clear last played station
     await AsyncStorage.removeItem(LAST_STATION_KEY);
+  };
+
+  const onVolumeChange = async (value) => {
+    setVolume(value);
+    if (sound) {
+      await sound.setVolumeAsync(value);
+    }
   };
 
 
@@ -228,6 +237,20 @@ export default function App() {
                 />
               </View>
             </View>
+            <View style={styles.volumeContainer}>
+              <IconButton icon="volume-low" size={20} style={styles.volumeIcon} />
+              <Slider
+                style={styles.slider}
+                minimumValue={0}
+                maximumValue={1}
+                value={volume}
+                onValueChange={onVolumeChange}
+                minimumTrackTintColor={theme.colors.primary}
+                maximumTrackTintColor="rgba(255,255,255,0.2)"
+                thumbTintColor={theme.colors.primary}
+              />
+              <IconButton icon="volume-high" size={20} style={styles.volumeIcon} />
+            </View>
           </Surface>
         )}
       </View>
@@ -281,5 +304,18 @@ const styles = StyleSheet.create({
     height: '60%',
     backgroundColor: 'rgba(255,255,255,0.1)',
     marginHorizontal: 4,
+  },
+  volumeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 4,
+    paddingHorizontal: 8,
+  },
+  slider: {
+    flex: 1,
+    height: 40,
+  },
+  volumeIcon: {
+    margin: 0,
   }
 });
