@@ -64,6 +64,11 @@ const response = await fetch(`${BASE_URL}/stations/search?name=${query}&order=cl
 
 The build output will be located in the `dist/` directory.
 
+## Troubleshooting
+
+- **Why on first load I get forever load and nothing happens?**
+- Your ISP might be blocking access to the [radio-browser.info](https://www.radio-browser.info/) API.
+
 ## License
 
 This project is licensed under the 0BSD License.
