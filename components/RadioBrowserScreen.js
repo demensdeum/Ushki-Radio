@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { List, Searchbar, Divider, Text, Surface, useTheme } from 'react-native-paper';
+import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { List, Searchbar, Divider, Text, Surface, useTheme, IconButton } from 'react-native-paper';
 import { Audio } from 'expo-av';
 import RadioService from './RadioService';
 
@@ -15,7 +15,8 @@ const RadioBrowserScreen = () => {
     const [hasMore, setHasMore] = useState(true);
 
     const [sound, setSound] = useState(null);
-    const [playingStationId, setPlayingStationId] = useState(null);
+    const [currentStation, setCurrentStation] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [isAudioLoading, setIsAudioLoading] = useState(false);
 
     const PAGE_SIZE = 20;
@@ -48,15 +49,9 @@ const RadioBrowserScreen = () => {
         try {
             setIsAudioLoading(true);
 
-            // If the same station is clicked, stop it
-            if (playingStationId === station.stationuuid) {
-                if (sound) {
-                    await sound.stopAsync();
-                    await sound.unloadAsync();
-                }
-                setSound(null);
-                setPlayingStationId(null);
-                setIsAudioLoading(false);
+            // If the same station is clicked, toggle it
+            if (currentStation?.stationuuid === station.stationuuid) {
+                await togglePlayback();
                 return;
             }
 
@@ -65,7 +60,8 @@ const RadioBrowserScreen = () => {
                 await sound.unloadAsync();
             }
 
-            setPlayingStationId(station.stationuuid);
+            setCurrentStation(station);
+            setIsPlaying(true);
             console.log(`Loading station: ${station.name} from ${station.url_resolved}`);
 
             const { sound: newSound } = await Audio.Sound.createAsync(
@@ -78,19 +74,50 @@ const RadioBrowserScreen = () => {
             newSound.setOnPlaybackStatusUpdate((status) => {
                 if (status.isLoaded) {
                     setIsAudioLoading(false);
+                    setIsPlaying(status.isPlaying);
+                }
+                if (status.didJustFinish) {
+                    setIsPlaying(false);
                 }
                 if (status.error) {
                     console.error(`Playback error: ${status.error}`);
                     setIsAudioLoading(false);
-                    setPlayingStationId(null);
+                    setIsPlaying(false);
                 }
             });
 
         } catch (error) {
             console.error('Error playing station:', error);
             setIsAudioLoading(false);
-            setPlayingStationId(null);
+            setIsPlaying(false);
         }
+    };
+
+    const togglePlayback = async () => {
+        if (!sound) return;
+
+        try {
+            if (isPlaying) {
+                await sound.pauseAsync();
+                setIsPlaying(false);
+            } else {
+                await sound.playAsync();
+                setIsPlaying(true);
+            }
+        } catch (error) {
+            console.error('Error toggling playback:', error);
+        }
+    };
+
+    const stopPlayback = async () => {
+        if (sound) {
+            await sound.stopAsync();
+            await sound.unloadAsync();
+        }
+        setSound(null);
+        setCurrentStation(null);
+        setIsPlaying(false);
+        setIsAudioLoading(false);
     };
 
     const fetchStations = async (isInitial = false, isRefresh = false) => {
@@ -154,7 +181,7 @@ const RadioBrowserScreen = () => {
     };
 
     const renderItem = ({ item }) => {
-        const isPlaying = playingStationId === item.stationuuid;
+        const isThisStationPlaying = currentStation?.stationuuid === item.stationuuid;
 
         return (
             <List.Item
@@ -162,13 +189,13 @@ const RadioBrowserScreen = () => {
                 description={item.country || 'Unknown Country'}
                 onPress={() => playStation(item)}
                 left={(props) => (
-                    isPlaying && isAudioLoading ? (
+                    isThisStationPlaying && isAudioLoading ? (
                         <ActivityIndicator {...props} size="small" />
                     ) : (
                         <List.Icon
                             {...props}
-                            icon={isPlaying ? "stop-circle" : "play-circle"}
-                            color={isPlaying ? theme.colors.primary : props.color}
+                            icon={isThisStationPlaying && isPlaying ? "stop-circle" : "play-circle"}
+                            color={isThisStationPlaying ? theme.colors.primary : props.color}
                         />
                     )
                 )}
@@ -208,21 +235,50 @@ const RadioBrowserScreen = () => {
                 style={styles.searchbar}
                 loading={loading}
             />
-            {loading && stations.length === 0 ? (
-                <ActivityIndicator animating={true} style={styles.loader} />
-            ) : (
-                <FlatList
-                    data={stations}
-                    keyExtractor={(item, index) => `${item.stationuuid}-${index}`}
-                    renderItem={renderItem}
-                    ItemSeparatorComponent={() => <Divider />}
-                    contentContainerStyle={styles.list}
-                    onEndReached={handleLoadMore}
-                    onEndReachedThreshold={0.5}
-                    ListFooterComponent={renderFooter}
-                    onRefresh={handleRefresh}
-                    refreshing={refreshing}
-                />
+            <View style={styles.flexArea}>
+                {loading && stations.length === 0 ? (
+                    <ActivityIndicator animating={true} style={styles.loader} />
+                ) : (
+                    <FlatList
+                        data={stations}
+                        keyExtractor={(item, index) => `${item.stationuuid}-${index}`}
+                        renderItem={renderItem}
+                        ItemSeparatorComponent={() => <Divider />}
+                        contentContainerStyle={[styles.list, currentStation && styles.listWithPanel]}
+                        onEndReached={handleLoadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={renderFooter}
+                        onRefresh={handleRefresh}
+                        refreshing={refreshing}
+                    />
+                )}
+            </View>
+
+            {currentStation && (
+                <Surface style={[styles.bottomPanel, { backgroundColor: theme.colors.surfaceVariant }]} elevation={4}>
+                    <View style={styles.bottomPanelContent}>
+                        <View style={styles.stationInfo}>
+                            <Text numberOfLines={1} style={styles.panelTitle}>{currentStation.name}</Text>
+                            <Text numberOfLines={1} style={styles.panelSubtitle}>{currentStation.country || 'Unknown'}</Text>
+                        </View>
+                        <View style={styles.panelActions}>
+                            {isAudioLoading ? (
+                                <ActivityIndicator style={styles.panelLoader} />
+                            ) : (
+                                <IconButton
+                                    icon={isPlaying ? "pause" : "play"}
+                                    size={28}
+                                    onPress={togglePlayback}
+                                />
+                            )}
+                            <IconButton
+                                icon="close"
+                                size={20}
+                                onPress={stopPlayback}
+                            />
+                        </View>
+                    </View>
+                </Surface>
             )}
         </View>
     );
@@ -230,6 +286,9 @@ const RadioBrowserScreen = () => {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
+    },
+    flexArea: {
         flex: 1,
     },
     searchbar: {
@@ -246,6 +305,9 @@ const styles = StyleSheet.create({
     list: {
         paddingBottom: 16,
     },
+    listWithPanel: {
+        paddingBottom: 80,
+    },
     tagContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -260,6 +322,40 @@ const styles = StyleSheet.create({
     tagText: {
         fontSize: 10,
     },
+    bottomPanel: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+    },
+    bottomPanelContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    stationInfo: {
+        flex: 1,
+        marginRight: 16,
+    },
+    panelTitle: {
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    panelSubtitle: {
+        fontSize: 12,
+        opacity: 0.7,
+    },
+    panelActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    panelLoader: {
+        margin: 10,
+    }
 });
 
 export default RadioBrowserScreen;
