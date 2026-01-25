@@ -1,11 +1,60 @@
-# Sample Snack app
+# Ushki Radio
 
-Open the `App.js` file to start writing some code. You can preview the changes directly on your phone or tablet by scanning the **QR code** or use the iOS or Android emulators. When you're done, click **Save** and share the link!
+**Ushki Radio** is a lightweight, modern web-based radio player built with Expo and React Native Paper. It allows users to browse, search, and listen to thousands of radio stations from around the world.
 
-When you're ready to see everything that Expo provides (or if you want to use your own editor) you can **Download** your project and use it with [expo cli](https://docs.expo.dev/get-started/installation/#expo-cli)).
+## Features
 
-All projects created in Snack are publicly available, so you can easily share the link to this project via link, or embed it on a web page with the `<>` button.
+- **Global Search**: Find stations by name or tags.
+- **Top Stations**: Discover popular stations based on community feedback.
+- **Favorites**: Save your favorite stations for quick access.
+- **Volume Control**: Easy-to-use volume adjustment in the playback bar.
+- **Localization**: Automatically detects and supports English and Russian.
+- **Persistence**: Remembers your last played station and volume level.
+- **Responsive Design**: Works beautifully on web browsers.
 
-If you're having problems, you can tweet to us [@expo](https://twitter.com/expo) or ask in our [forums](https://forums.expo.dev/c/expo-dev-tools/61) or [Discord](https://chat.expo.dev/).
+## Technology Stack
 
-Snack is Open Source. You can find the code on the [GitHub repo](https://github.com/expo/snack).
+- **Framework**: [Expo](https://expo.dev/) / React Native
+- **UI Library**: [React Native Paper](https://reactnativepaper.com/)
+- **Audio Handling**: [expo-av](https://docs.expo.dev/versions/latest/sdk/av/)
+- **Localization**: `expo-localization` & `i18n-js`
+- **Storage**: `@react-native-async-storage/async-storage`
+
+## Radio List API Service
+
+Ushki Radio utilizes the **[Radio Browser API](https://www.radio-browser.info/)**, a community-driven database of worldwide radio stations.
+
+### Integration Details
+
+The application interacts with the API through the `RadioService.js` component. It uses the following endpoints:
+
+- **Base URL**: `https://de1.api.radio-browser.info/json`
+- **Top Stations**: Fetches stations ordered by `clickcount` to show users what's popular.
+- **Search**: Queries stations by name with filters to hide broken links and prioritize popular results.
+
+Example implementation in `RadioService.js`:
+
+```javascript
+const response = await fetch(`${BASE_URL}/stations/search?name=${query}&order=clickcount&reverse=true&hidebroken=true`);
+```
+
+## Running the Project
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the development server for web:
+   ```bash
+   npm run web
+   ```
+3. Export for static hosting:
+   ```bash
+   npm run build:web
+   ```
+
+The build output will be located in the `dist/` directory.
+
+## License
+
+This project is licensed under the 0BSD License.
