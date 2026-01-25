@@ -2,6 +2,12 @@
 
 **Ushki Radio** is a lightweight, modern web-based radio player built with Expo and React Native Paper. It allows users to browse, search, and listen to thousands of radio stations from around the world.
 
+## Availability
+
+- **Web Version**: [Available online](https://demensdeum.com/software/ushki-radio)
+- **Standalone Versions**: Available at the [releases page](https://github.com/demensdeum/Ushki-Radio/releases) (Native version packed by [Pake](https://github.com/tw93/Pake))
+
+
 ## Features
 
 - **Global Search**: Find stations by name or tags.
