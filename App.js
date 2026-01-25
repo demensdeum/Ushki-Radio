@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import RadioBrowserScreen from './components/RadioBrowserScreen';
 import FavoritesScreen from './components/FavoritesScreen';
 import FavoritesService from './components/FavoritesService';
+import i18n from './i18n';
 
 const theme = {
   ...MD3DarkTheme,
@@ -21,8 +22,8 @@ const VOLUME_KEY = '@ushki_volume';
 export default function App() {
   const [index, setIndex] = useState(0);
   const [routes] = useState([
-    { key: 'search', title: 'Search', focusedIcon: 'magnify', unfocusedIcon: 'magnify' },
-    { key: 'favorites', title: 'Favorites', focusedIcon: 'heart', unfocusedIcon: 'heart-outline' },
+    { key: 'search', title: i18n.t('search'), focusedIcon: 'magnify', unfocusedIcon: 'magnify' },
+    { key: 'favorites', title: i18n.t('favorites'), focusedIcon: 'heart', unfocusedIcon: 'heart-outline' },
   ]);
 
   // Global Playback State
@@ -177,7 +178,7 @@ export default function App() {
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         <Appbar.Header elevated>
-          <Appbar.Content title="Ushki Radio" />
+          <Appbar.Content title={i18n.t('app_name')} />
         </Appbar.Header>
 
         <View style={styles.content}>
@@ -221,7 +222,7 @@ export default function App() {
             <View style={styles.bottomPanelContent}>
               <View style={styles.stationInfo}>
                 <Text numberOfLines={1} style={styles.panelTitle}>{currentStation.name}</Text>
-                <Text numberOfLines={1} style={styles.panelSubtitle}>{currentStation.country || 'Unknown'}</Text>
+                <Text numberOfLines={1} style={styles.panelSubtitle}>{currentStation.country || i18n.t('unknown')}</Text>
               </View>
               <View style={styles.panelActions}>
                 <Slider

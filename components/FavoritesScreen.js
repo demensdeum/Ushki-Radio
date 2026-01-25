@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { List, Divider, Text, Surface, useTheme, IconButton } from 'react-native-paper';
 import FavoritesService from './FavoritesService';
+import i18n from '../i18n';
 
 const FavoritesScreen = ({ playStation, currentStation, isPlaying, isAudioLoading, toggleFavorite, favorites: favSet }) => {
     const theme = useTheme();
@@ -30,7 +31,7 @@ const FavoritesScreen = ({ playStation, currentStation, isPlaying, isAudioLoadin
         return (
             <List.Item
                 title={item.name}
-                description={item.country || 'Unknown Country'}
+                description={item.country || i18n.t('unknown_country')}
                 onPress={() => playStation(item)}
                 left={(props) => (
                     isThisStationPlaying && isAudioLoading ? (
@@ -82,8 +83,8 @@ const FavoritesScreen = ({ playStation, currentStation, isPlaying, isAudioLoadin
             {favorites.length === 0 ? (
                 <View style={styles.emptyContainer}>
                     <IconButton icon="heart-outline" size={48} disabled />
-                    <Text variant="titleMedium">No favorite stations yet</Text>
-                    <Text variant="bodySmall">Add some from the search tab!</Text>
+                    <Text variant="titleMedium">{i18n.t('no_favorites')}</Text>
+                    <Text variant="bodySmall">{i18n.t('add_favorites_hint')}</Text>
                 </View>
             ) : (
                 <FlatList

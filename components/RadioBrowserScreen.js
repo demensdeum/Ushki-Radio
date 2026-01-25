@@ -3,6 +3,7 @@ import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { List, Searchbar, Divider, Text, Surface, useTheme, IconButton } from 'react-native-paper';
 import RadioService from './RadioService';
 import FavoritesService from './FavoritesService';
+import i18n from '../i18n';
 
 const RadioBrowserScreen = ({ playStation, currentStation, isPlaying, isAudioLoading, favorites, toggleFavorite }) => {
     const theme = useTheme();
@@ -101,7 +102,7 @@ const RadioBrowserScreen = ({ playStation, currentStation, isPlaying, isAudioLoa
         return (
             <List.Item
                 title={item.name}
-                description={item.country || 'Unknown Country'}
+                description={item.country || i18n.t('unknown_country')}
                 onPress={() => playStation(item)}
                 left={(props) => (
                     isThisStationPlaying && isAudioLoading ? (
@@ -152,7 +153,7 @@ const RadioBrowserScreen = ({ playStation, currentStation, isPlaying, isAudioLoa
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <Searchbar
-                placeholder="Search Stations"
+                placeholder={i18n.t('search_placeholder')}
                 onChangeText={handleSearch}
                 value={searchQuery}
                 style={styles.searchbar}
