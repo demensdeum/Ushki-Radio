@@ -1,35 +1,29 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-// You can import supported modules from npm
-import { Card } from 'react-native-paper';
-
-// or any files within the Snack
-import AssetExample from './components/AssetExample';
+import { StyleSheet, View, StatusBar } from 'react-native';
+import { Provider as PaperProvider, Appbar } from 'react-native-paper';
+import RadioBrowserScreen from './components/RadioBrowserScreen';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.paragraph}>
-        Change code in the editor and watch it change on your phone! Save to get a shareable url.
-      </Text>
-      <Card>
-        <AssetExample />
-      </Card>
-    </View>
+    <PaperProvider>
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <Appbar.Header elevated>
+          <Appbar.Content title="Ushki Radio" />
+        </Appbar.Header>
+        <View style={styles.content}>
+          <RadioBrowserScreen />
+        </View>
+      </View>
+    </PaperProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    backgroundColor: '#ecf0f1',
-    padding: 8,
+    backgroundColor: '#fff',
   },
-  paragraph: {
-    margin: 24,
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
+  content: {
+    flex: 1,
   },
 });
