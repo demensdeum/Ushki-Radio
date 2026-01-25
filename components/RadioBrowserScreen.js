@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
-import { List, Searchbar, Divider, Text, Surface } from 'react-native-paper';
+import { List, Searchbar, Divider, Text, Surface, useTheme } from 'react-native-paper';
 import RadioService from './RadioService';
 
 const RadioBrowserScreen = () => {
+    const theme = useTheme();
     const [stations, setStations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -106,8 +107,8 @@ const RadioBrowserScreen = () => {
                         {item.tags.split(',').slice(0, 2).map((tag, index) => {
                             const trimmedTag = tag.trim();
                             return trimmedTag.length > 0 ? (
-                                <Surface key={index} style={styles.tag}>
-                                    <Text style={styles.tagText}>{trimmedTag}</Text>
+                                <Surface key={index} style={[styles.tag, { backgroundColor: theme.colors.surfaceVariant }]}>
+                                    <Text style={[styles.tagText, { color: theme.colors.onSurfaceVariant }]}>{trimmedTag}</Text>
                                 </Surface>
                             ) : null;
                         })}
@@ -120,14 +121,14 @@ const RadioBrowserScreen = () => {
     const renderFooter = () => {
         if (!loadingMore) return null;
         return (
-            <View style={styles.footerLoader}>
+            <View style={[styles.footerLoader, { borderColor: theme.colors.outline }]}>
                 <ActivityIndicator animating={true} />
             </View>
         );
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <Searchbar
                 placeholder="Search Stations"
                 onChangeText={handleSearch}
@@ -158,7 +159,6 @@ const RadioBrowserScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     searchbar: {
         margin: 16,
@@ -170,7 +170,6 @@ const styles = StyleSheet.create({
     footerLoader: {
         paddingVertical: 20,
         borderTopWidth: 1,
-        borderColor: '#CED0CE',
     },
     list: {
         paddingBottom: 16,
@@ -184,12 +183,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 6,
         paddingVertical: 2,
         borderRadius: 4,
-        backgroundColor: '#e0e0e0',
         marginLeft: 4,
     },
     tagText: {
         fontSize: 10,
-        color: '#666',
     },
 });
 

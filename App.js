@@ -1,12 +1,20 @@
 import { StyleSheet, View, StatusBar } from 'react-native';
-import { Provider as PaperProvider, Appbar } from 'react-native-paper';
+import { Provider as PaperProvider, Appbar, MD3DarkTheme } from 'react-native-paper';
 import RadioBrowserScreen from './components/RadioBrowserScreen';
+
+const theme = {
+  ...MD3DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    // Add custom color overrides if needed
+  },
+};
 
 export default function App() {
   return (
-    <PaperProvider>
+    <PaperProvider theme={theme}>
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <Appbar.Header elevated>
           <Appbar.Content title="Ushki Radio" />
         </Appbar.Header>
@@ -21,9 +29,10 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#121212',
   },
   content: {
     flex: 1,
   },
 });
+
