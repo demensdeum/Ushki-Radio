@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { List, Searchbar, Divider, Text, Surface, useTheme } from 'react-native-paper';
+import { Audio } from 'expo-av';
 import RadioService from './RadioService';
 
 const RadioBrowserScreen = () => {
@@ -13,10 +14,14 @@ const RadioBrowserScreen = () => {
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
 
+    const [sound, setSound] = useState(null);
+    const [playingStationId, setPlayingStationId] = useState(null);
+    const [isAudioLoading, setIsAudioLoading] = useState(false);
+
     const PAGE_SIZE = 20;
     const INITIAL_LIMIT = 20;
 
-    const isFirstRun = React.useRef(true);
+    const isFirstRun = useRef(true);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -31,8 +36,64 @@ const RadioBrowserScreen = () => {
         return () => clearTimeout(delayDebounceFn);
     }, [searchQuery]);
 
+    useEffect(() => {
+        return () => {
+            if (sound) {
+                sound.unloadAsync();
+            }
+        };
+    }, [sound]);
+
+    const playStation = async (station) => {
+        try {
+            setIsAudioLoading(true);
+
+            // If the same station is clicked, stop it
+            if (playingStationId === station.stationuuid) {
+                if (sound) {
+                    await sound.stopAsync();
+                    await sound.unloadAsync();
+                }
+                setSound(null);
+                setPlayingStationId(null);
+                setIsAudioLoading(false);
+                return;
+            }
+
+            // Stop and unload previous sound if any
+            if (sound) {
+                await sound.unloadAsync();
+            }
+
+            setPlayingStationId(station.stationuuid);
+            console.log(`Loading station: ${station.name} from ${station.url_resolved}`);
+
+            const { sound: newSound } = await Audio.Sound.createAsync(
+                { uri: station.url_resolved },
+                { shouldPlay: true }
+            );
+
+            setSound(newSound);
+
+            newSound.setOnPlaybackStatusUpdate((status) => {
+                if (status.isLoaded) {
+                    setIsAudioLoading(false);
+                }
+                if (status.error) {
+                    console.error(`Playback error: ${status.error}`);
+                    setIsAudioLoading(false);
+                    setPlayingStationId(null);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error playing station:', error);
+            setIsAudioLoading(false);
+            setPlayingStationId(null);
+        }
+    };
+
     const fetchStations = async (isInitial = false, isRefresh = false) => {
-        console.log(`Starting radio stations fetch (initial: ${isInitial}, refresh: ${isRefresh})...`);
         if (loading || loadingMore || (refreshing && !isRefresh) || (!hasMore && !isInitial && !isRefresh)) return;
 
         if (isRefresh) {
@@ -65,10 +126,6 @@ const RadioBrowserScreen = () => {
             if (isInitial || isRefresh) {
                 setStations(data);
                 setOffset(data.length);
-                console.log(`Fetched ${data.length} stations:`);
-                data.forEach((s, i) => {
-                    console.log(`${i + 1}. ${s.name} (${s.country || 'Unknown'}) - clicks: ${s.clickcount}, tags: ${s.tags}`);
-                });
             } else {
                 setStations((prev) => [...prev, ...data]);
                 setOffset((prev) => prev + data.length);
@@ -96,27 +153,42 @@ const RadioBrowserScreen = () => {
         }
     };
 
-    const renderItem = ({ item }) => (
-        <List.Item
-            title={item.name}
-            description={item.country || 'Unknown Country'}
-            left={(props) => <List.Icon {...props} icon="radio" />}
-            right={(props) =>
-                item.tags && item.tags.trim().length > 0 ? (
-                    <View style={styles.tagContainer}>
-                        {item.tags.split(',').slice(0, 2).map((tag, index) => {
-                            const trimmedTag = tag.trim();
-                            return trimmedTag.length > 0 ? (
-                                <Surface key={index} style={[styles.tag, { backgroundColor: theme.colors.surfaceVariant }]}>
-                                    <Text style={[styles.tagText, { color: theme.colors.onSurfaceVariant }]}>{trimmedTag}</Text>
-                                </Surface>
-                            ) : null;
-                        })}
-                    </View>
-                ) : null
-            }
-        />
-    );
+    const renderItem = ({ item }) => {
+        const isPlaying = playingStationId === item.stationuuid;
+
+        return (
+            <List.Item
+                title={item.name}
+                description={item.country || 'Unknown Country'}
+                onPress={() => playStation(item)}
+                left={(props) => (
+                    isPlaying && isAudioLoading ? (
+                        <ActivityIndicator {...props} size="small" />
+                    ) : (
+                        <List.Icon
+                            {...props}
+                            icon={isPlaying ? "stop-circle" : "play-circle"}
+                            color={isPlaying ? theme.colors.primary : props.color}
+                        />
+                    )
+                )}
+                right={(props) =>
+                    item.tags && item.tags.trim().length > 0 ? (
+                        <View style={styles.tagContainer}>
+                            {item.tags.split(',').slice(0, 2).map((tag, index) => {
+                                const trimmedTag = tag.trim();
+                                return trimmedTag.length > 0 ? (
+                                    <Surface key={index} style={[styles.tag, { backgroundColor: theme.colors.surfaceVariant }]}>
+                                        <Text style={[styles.tagText, { color: theme.colors.onSurfaceVariant }]}>{trimmedTag}</Text>
+                                    </Surface>
+                                ) : null;
+                            })}
+                        </View>
+                    ) : null
+                }
+            />
+        );
+    };
 
     const renderFooter = () => {
         if (!loadingMore) return null;
@@ -191,3 +263,4 @@ const styles = StyleSheet.create({
 });
 
 export default RadioBrowserScreen;
+
