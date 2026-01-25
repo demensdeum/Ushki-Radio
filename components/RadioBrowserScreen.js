@@ -13,8 +13,8 @@ const RadioBrowserScreen = () => {
     const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
 
-    const PAGE_SIZE = 50;
-    const INITIAL_LIMIT = 100;
+    const PAGE_SIZE = 20;
+    const INITIAL_LIMIT = 20;
 
     const isFirstRun = React.useRef(true);
 
