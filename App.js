@@ -214,6 +214,16 @@ export default function App() {
                 <Text numberOfLines={1} style={styles.panelSubtitle}>{currentStation.country || 'Unknown'}</Text>
               </View>
               <View style={styles.panelActions}>
+                <Slider
+                  style={styles.volumeSlider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={volume}
+                  onValueChange={onVolumeChange}
+                  minimumTrackTintColor={theme.colors.primary}
+                  maximumTrackTintColor="rgba(255,255,255,0.2)"
+                  thumbTintColor={theme.colors.primary}
+                />
                 <IconButton
                   icon={isCurrentStationFav ? "heart" : "heart-outline"}
                   iconColor={isCurrentStationFav ? theme.colors.primary : theme.colors.onSurfaceVariant}
@@ -236,20 +246,6 @@ export default function App() {
                   onPress={stopPlayback}
                 />
               </View>
-            </View>
-            <View style={styles.volumeContainer}>
-              <IconButton icon="volume-low" size={20} style={styles.volumeIcon} />
-              <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={1}
-                value={volume}
-                onValueChange={onVolumeChange}
-                minimumTrackTintColor={theme.colors.primary}
-                maximumTrackTintColor="rgba(255,255,255,0.2)"
-                thumbTintColor={theme.colors.primary}
-              />
-              <IconButton icon="volume-high" size={20} style={styles.volumeIcon} />
             </View>
           </Surface>
         )}
@@ -305,17 +301,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
     marginHorizontal: 4,
   },
-  volumeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingBottom: 4,
-    paddingHorizontal: 8,
-  },
-  slider: {
-    flex: 1,
+  volumeSlider: {
+    width: '15%',
+    minWidth: 60,
     height: 40,
-  },
-  volumeIcon: {
-    margin: 0,
   }
 });
