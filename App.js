@@ -57,6 +57,20 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          staysActiveInBackground: true,
+          shouldAutomaticallyPauseOnDetachPixels: false,
+          playsInSilentModeIOS: true,
+          interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+          interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        });
+      } catch (e) {
+        console.error('Error setting audio mode:', e);
+      }
+    };
+    setupAudio();
     loadFavorites();
     loadSettingsSource();
   }, [loadFavorites, loadSettingsSource]);

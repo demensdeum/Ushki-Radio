@@ -21,7 +21,11 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.pajewea.ushkiradio"
+      "package": "com.demensdeum.ushkiradio",
+      "permissions": [
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_AUDIO_PLAYBACK"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
