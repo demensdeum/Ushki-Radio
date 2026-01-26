@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.pajewea.ushkiradio"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -28,6 +29,11 @@
     },
     "experiments": {
       "baseUrl": "/software/ushki-radio"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a1634579-30c8-4b0b-a6bf-11e950bb110b"
+      }
     }
   }
 }
