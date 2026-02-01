@@ -48,7 +48,15 @@
     "plugins": [
       "expo-font",
       "expo-router",
-      "expo-audio"
+      "expo-audio",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ]
   }
 }
