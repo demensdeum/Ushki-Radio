@@ -1,4 +1,4 @@
-package com.pajewea.ushkiradio
+package com.demensdeum.ushkiradio
 
 import android.os.Build
 import android.os.Bundle

@@ -1,4 +1,4 @@
-package com.pajewea.ushkiradio
+package com.demensdeum.ushkiradio
 
 import android.app.Application
 import android.content.res.Configuration
