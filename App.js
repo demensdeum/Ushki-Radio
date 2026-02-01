@@ -79,7 +79,7 @@ function AppContent() {
       try {
         await setAudioModeAsync({
           playsInSilentMode: true,
-          staysActiveInBackground: true,
+          shouldPlayInBackground: true,
           interruptionMode: 'doNotMix',
           shouldRouteThroughEarpiece: false,
           allowsRecording: false,
@@ -101,6 +101,13 @@ function AppContent() {
 
   useEffect(() => {
     if (player && currentStation) {
+      player.setActiveForLockScreen(true, {
+        title: currentStation.name,
+        artist: 'Ushki Radio',
+      }, {
+        showSeekForward: false,
+        showSeekBackward: false,
+      });
       player.play();
     }
   }, [currentStation, player]);
@@ -154,6 +161,7 @@ function AppContent() {
 
   const stopPlayback = async () => {
     if (player) {
+      player.setActiveForLockScreen(false);
       player.pause();
     }
     setCurrentStation(null);
