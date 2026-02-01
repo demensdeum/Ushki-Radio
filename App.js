@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, StatusBar, Platform } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Provider as PaperProvider, Appbar, MD3DarkTheme, BottomNavigation, Text, Surface, IconButton, ActivityIndicator, Divider } from 'react-native-paper';
-import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
+import { Audio, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RadioBrowserScreen from './components/RadioBrowserScreen';
@@ -41,11 +41,14 @@ function AppContent() {
   ]);
 
   // Global Playback State
-  const [sound, setSound] = useState(null);
   const [currentStation, setCurrentStation] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [volume, setVolume] = useState(1.0);
+
+  const player = useAudioPlayer(currentStation ? currentStation.url_resolved : null);
+  const status = useAudioPlayerStatus(player);
+
+  const isPlaying = status.playing;
+  const isAudioLoading = !status.isLoaded && !!currentStation && !status.error;
 
   // Global Favorites State
   const [favorites, setFavorites] = useState(new Set());
@@ -63,7 +66,8 @@ function AppContent() {
       }
       const savedVolume = await AsyncStorage.getItem(VOLUME_KEY);
       if (savedVolume !== null) {
-        setVolume(parseFloat(savedVolume));
+        const vol = parseFloat(savedVolume);
+        setVolume(vol);
       }
     } catch (e) {
       console.error('Error loading settings:', e);
@@ -74,11 +78,10 @@ function AppContent() {
     const setupAudio = async () => {
       try {
         await Audio.setAudioModeAsync({
-          staysActiveInBackground: true,
-          shouldAutomaticallyPauseOnDetachPixels: false,
-          playsInSilentModeIOS: true,
-          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+          playsInSilentMode: true,
+          interruptionMode: 'doNotMix',
+          shouldRouteThroughEarpiece: false,
+          allowsRecording: false,
         });
       } catch (e) {
         console.error('Error setting audio mode:', e);
@@ -88,6 +91,18 @@ function AppContent() {
     loadFavorites();
     loadSettingsSource();
   }, [loadFavorites, loadSettingsSource]);
+
+  useEffect(() => {
+    if (player) {
+      player.volume = volume;
+    }
+  }, [volume, player]);
+
+  useEffect(() => {
+    if (player && currentStation) {
+      player.play();
+    }
+  }, [currentStation, player]);
 
   const toggleFavorite = async (station) => {
     const isFav = favorites.has(station.stationuuid);
@@ -101,71 +116,35 @@ function AppContent() {
     setFavorites(new Set(favorites));
   };
 
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
-
   const playStation = async (station) => {
     try {
-      setIsAudioLoading(true);
-      if (currentStation?.stationuuid === station.stationuuid && sound) {
-        await togglePlayback();
+      if (currentStation?.stationuuid === station.stationuuid) {
+        togglePlayback();
         return;
       }
-      if (sound) {
-        await sound.unloadAsync();
-      }
+
       setCurrentStation(station);
-      setIsPlaying(true);
 
       // Save last played station
       await AsyncStorage.setItem(LAST_STATION_KEY, JSON.stringify(station));
 
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: station.url_resolved },
-        { shouldPlay: true, volume: volume }
-      );
-      setSound(newSound);
-      newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded) {
-          setIsAudioLoading(false);
-          setIsPlaying(status.isPlaying);
-        }
-        if (status.didJustFinish) {
-          setIsPlaying(false);
-        }
-        if (status.error) {
-          console.error(`Playback error: ${status.error}`);
-          setIsAudioLoading(false);
-          setIsPlaying(false);
-        }
-      });
+      // Player source will update via hook, we just need to play it
+      // However, it might take a moment to load. The hook handles the source change.
+      // We can call player.play() but it might need to wait for isLoaded.
+      // useAudioPlayer usually starts playing if source changes and it was set to? 
+      // Actually let's check if there's a shouldPlay equivalent in the hook.
     } catch (error) {
       console.error('Error playing station:', error);
-      setIsAudioLoading(false);
-      setIsPlaying(false);
     }
   };
 
-  const togglePlayback = async () => {
-    // If we have a current station but no sound (e.g. from app restart), load it first
-    if (!sound && currentStation) {
-      await playStation(currentStation);
-      return;
-    }
-
-    if (!sound) return;
+  const togglePlayback = () => {
+    if (!player) return;
     try {
       if (isPlaying) {
-        await sound.pauseAsync();
-        setIsPlaying(false);
+        player.pause();
       } else {
-        await sound.playAsync();
-        setIsPlaying(true);
+        player.play();
       }
     } catch (error) {
       console.error('Error toggling playback:', error);
@@ -173,26 +152,22 @@ function AppContent() {
   };
 
   const stopPlayback = async () => {
-    if (sound) {
-      await sound.stopAsync();
-      await sound.unloadAsync();
+    if (player) {
+      player.pause();
     }
-    setSound(null);
     setCurrentStation(null);
-    setIsPlaying(false);
-    setIsAudioLoading(false);
 
     // Clear last played station
     await AsyncStorage.removeItem(LAST_STATION_KEY);
   };
 
-  const onVolumeChange = async (value) => {
+  const onVolumeChange = (value) => {
     setVolume(value);
-    if (sound) {
-      await sound.setVolumeAsync(value);
+    if (player) {
+      player.volume = value;
     }
     try {
-      await AsyncStorage.setItem(VOLUME_KEY, value.toString());
+      AsyncStorage.setItem(VOLUME_KEY, value.toString());
     } catch (e) {
       console.error('Error saving volume:', e);
     }

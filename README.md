@@ -25,7 +25,7 @@
 
 - **Framework**: [Expo](https://expo.dev/) / React Native
 - **UI Library**: [React Native Paper](https://reactnativepaper.com/)
-- **Audio Handling**: [expo-av](https://docs.expo.dev/versions/latest/sdk/av/)
+- **Audio Handling**: [expo-audio](https://docs.expo.dev/versions/latest/sdk/audio/)
 - **Localization**: `expo-localization` & `i18n-js`
 - **Storage**: `@react-native-async-storage/async-storage`
 
