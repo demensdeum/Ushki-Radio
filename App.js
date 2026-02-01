@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, StatusBar, Platform } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Provider as PaperProvider, Appbar, MD3DarkTheme, BottomNavigation, Text, Surface, IconButton, ActivityIndicator, Divider } from 'react-native-paper';
-import { Audio, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
 import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RadioBrowserScreen from './components/RadioBrowserScreen';
@@ -77,8 +77,9 @@ function AppContent() {
   useEffect(() => {
     const setupAudio = async () => {
       try {
-        await Audio.setAudioModeAsync({
+        await setAudioModeAsync({
           playsInSilentMode: true,
+          staysActiveInBackground: true,
           interruptionMode: 'doNotMix',
           shouldRouteThroughEarpiece: false,
           allowsRecording: false,
