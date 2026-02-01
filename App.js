@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, StatusBar } from 'react-native';
+import { StyleSheet, View, StatusBar, Platform } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Provider as PaperProvider, Appbar, MD3DarkTheme, BottomNavigation, Text, Surface, IconButton, ActivityIndicator, Divider } from 'react-native-paper';
 import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
 import Slider from '@react-native-community/slider';
@@ -20,6 +21,19 @@ const LAST_STATION_KEY = '@ushki_last_station';
 const VOLUME_KEY = '@ushki_volume';
 
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppContent />
+    </SafeAreaProvider>
+  );
+}
+
+function AppContent() {
+  const insets = useSafeAreaInsets();
+  const TAB_BAR_HEIGHT = 80; // Standard React Native Paper BottomNavigation height
+
+  const bottomOffset = insets.bottom + TAB_BAR_HEIGHT + 8; // 8 for additional margin
+
   const [index, setIndex] = useState(0);
   const [routes] = useState([
     { key: 'search', title: i18n.t('search'), focusedIcon: 'magnify', unfocusedIcon: 'magnify' },
@@ -232,7 +246,8 @@ export default function App() {
         </View>
 
         {currentStation && (
-          <Surface style={[styles.bottomPanel, { backgroundColor: theme.colors.surfaceVariant }]} elevation={4}>
+          <Surface style={[styles.bottomPanel, { backgroundColor: theme.colors.surfaceVariant, bottom: bottomOffset }]} elevation={4}>
+
             <View style={styles.bottomPanelContent}>
               <View style={styles.stationInfo}>
                 <Text numberOfLines={1} style={styles.panelTitle}>{currentStation.name}</Text>
@@ -284,7 +299,6 @@ const styles = StyleSheet.create({
   },
   bottomPanel: {
     position: 'absolute',
-    bottom: 96, // Above bottom navigation bar
     left: 8,
     right: 8,
     paddingHorizontal: 16,
