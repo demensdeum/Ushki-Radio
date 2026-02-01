@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   },
   bottomPanel: {
     position: 'absolute',
-    bottom: 80, // Above bottom navigation
+    bottom: 96, // Above bottom navigation bar
     left: 8,
     right: 8,
     paddingHorizontal: 16,
